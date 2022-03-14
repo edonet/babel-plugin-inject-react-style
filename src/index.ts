@@ -142,7 +142,7 @@ function visitProgram(program: NodePath<types.Program>, { css }: State): void {
         ),
         types.importDeclaration(
             [types.importDefaultSpecifier(loader)],
-            types.stringLiteral('babel-plugin-inject-react-style/cx-loader')
+            types.stringLiteral('babel-plugin-inject-react-style/dist/cx-loader.js')
         ),
         types.variableDeclaration('const', [
             types.variableDeclarator(id, types.callExpression(loader, [styles]))

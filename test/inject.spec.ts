@@ -49,7 +49,7 @@ describe('inject', () => {
 
         // 校验对象
         expect(indexOf('app.scss')).toBe(true);
-        expect(indexOf('babel-plugin-inject-react-style/cx-loader')).toBe(false);
+        expect(indexOf('babel-plugin-inject-react-style/dist/cx-loader.js')).toBe(false);
         expect(indexOf('className: "app"')).toBe(true);
         expect(indexOf('className: [prop.red ? \'red\' : \'\', \'f12\'].join(\' \')')).toBe(true);
         expect(indexOf('className: prop.className')).toBe(true);
@@ -73,7 +73,7 @@ describe('inject', () => {
 
         // 校验对象
         expect(indexOf('index.module.scss')).toBe(true);
-        expect(indexOf('babel-plugin-inject-react-style/cx-loader')).toBe(true);
+        expect(indexOf('babel-plugin-inject-react-style/dist/cx-loader.js')).toBe(true);
         expect(indexOf('className: "app"')).toBe(false);
         expect(indexOf('className: [prop.red ? \'red\' : \'\', \'f12\'].join(\' \')')).toBe(false);
         expect(indexOf('className: prop.className')).toBe(false);
