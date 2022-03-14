@@ -1,0 +1,29 @@
+{
+    "exclude": ["./dist", "node_modules"],                        // 排除目录
+    "compilerOptions": {
+        "target": "es2018",                                       // 指定ECMAScript目标版本
+        "lib": ["es2018"],                                        // 使用`es6`类型库
+        "module": "commonjs",                                     // 指定模块化类型
+        "moduleResolution": "node",                               // 指定模块化解析方式
+        "declaration": true,                                      // 生成 `.d.ts` 文件
+        "declarationMap": true,                                   // 生成 `.d.ts` 映射文件
+        "strict": true,                                           // 开启严格的类型检测
+        "sourceMap": true,                                        // 生成 `.map` 源码映射文件
+        "esModuleInterop": false,                                 // 支持`commonjs`模块通过`default`导入
+        "experimentalDecorators": true,                           // 支持装饰器语法
+        "noImplicitAny": true,                                    // 禁用`any`类型
+        "allowJs": true,                                          // 允许加载`js`文件
+        "noEmit": false,                                          // 不生成输出文件
+        "jsx": "preserve",                                        // 指定`jsx`类型
+        "isolatedModules": true,                                  // 将每个文件作为单独
+        "resolveJsonModule": true,                                // 解析`json`文件为模块的模块
+        "forceConsistentCasingInFileNames": true,                 // 禁止对同一个文件的不一致的引用
+        "skipLibCheck": true,                                     // 跳过声明文件的类型检查
+        "skipDefaultLibCheck": true,                              // 跳过默认声明文件的类型检查
+        "outDir": "./dist",                                       // 编译后生成的文件目录
+        "baseUrl": "./src",                                       // 路径基准目录
+        "paths": {                                                // 路径映射
+            "@/*": ["./*"]                                        // 源文件目录
+        }
+    }
+}
