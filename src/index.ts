@@ -20,16 +20,24 @@ import { declare } from '@babel/helper-plugin-utils';
 
 /**
  *****************************************
+ * 资源
+ *****************************************
+ */
+interface Asset {
+    id?: types.Identifier;
+    name: string;
+    file: string;
+    module: boolean;
+}
+
+
+/**
+ *****************************************
  * 定义状态
  *****************************************
  */
 interface State extends PluginPass {
-    css?: void | {
-        id?: types.Identifier;
-        name: string;
-        file: string;
-        module: boolean;
-    };
+    css?: void | Asset;
 }
 
 
@@ -72,20 +80,21 @@ function isFile(file: string): boolean | undefined {
  * 解析 CSS 样式文件
  *****************************************
  */
-function resolveFile(file: string): void | string {
-    const dirname = path.dirname(file);
-    const basename = path.basename(file).slice(0, -4);
+function resolveFile(id: string): void | Asset {
+    const dirname = path.dirname(id);
+    const basename = path.basename(id).slice(0, -4);
     const exts = ['.css', '.scss', '.less', '.sass'];
     const modes = ['', '.module', '.global'];
 
     // 遍历查找文件
     for (let ext of exts) {
         for (let mode of modes) {
-            const id = path.join(dirname, `${basename}${mode}${ext}`);
+            const name = `${basename}${mode}${ext}`;
+            const file = path.join(dirname, name);
 
             // 存在文件
-            if (isFile(id)) {
-                return id;
+            if (isFile(file)) {
+                return { name: './' + name, file, module: mode === '.module' };
             }
         }
     }
@@ -116,26 +125,35 @@ function visitProgram(program: NodePath<types.Program>, { css }: State): void {
         return;
     }
 
-    // 添加模块节点
-    if (css.module) {
-
-        // 更新ID
-        css.id = program.scope.generateUidIdentifier('cx');
-
-        // 添加节点
-        program.unshiftContainer(
-            'body',
-            types.importDeclaration(
-                [types.importSpecifier(css.id, types.identifier('cx'))],
-                types.stringLiteral(`${file}?module=1`)
-            )
-        );
-    } else {
-        program.unshiftContainer(
-            'body',
-            types.importDeclaration([], types.stringLiteral(file))
-        );
+    // 全局样式
+    if (!css.module) {
+        program.unshiftContainer('body', types.importDeclaration([], types.stringLiteral(file)));
+        return;
     }
+
+    // 生成模块节点
+    const styles = program.scope.generateUidIdentifier('styles');
+    const loader = program.scope.generateUidIdentifier('cxLoader');
+    const id = program.scope.generateUidIdentifier('cx');
+    const nodes = [
+        types.importDeclaration(
+            [types.importDefaultSpecifier(styles)],
+            types.stringLiteral(`${file}`)
+        ),
+        types.importDeclaration(
+            [types.importDefaultSpecifier(loader)],
+            types.stringLiteral('babel-plugin-inject-react-style/cx-loader')
+        ),
+        types.variableDeclaration('const', [
+            types.variableDeclarator(id, types.callExpression(loader, [styles]))
+        ]),
+    ];
+
+    // 更新ID
+    css.id = id;
+
+    // 添加节点
+    program.unshiftContainer('body', nodes);
 }
 
 
@@ -206,7 +224,7 @@ function visitJSXAttribute(expr: NodePath<types.JSXAttribute>, { css }: State): 
  *****************************************
  */
 export interface Options {
-    resolve?(file: string): void | string;
+    resolve?(file: string): undefined | Asset;
 }
 
 
@@ -227,16 +245,7 @@ export default declare((api, opts: Options) => {
         name: 'inject-jsx-css-module',
         pre(this: State): void {
             if (this.filename && exts.includes(path.extname(this.filename))) {
-                const file = resolve(this.filename);
-
-                // 找到样式文件
-                if (file) {
-                    this.css = {
-                        name: `./${path.basename(file)}`,
-                        file,
-                        module: !/\.global\.\w+/.test(file),
-                    };
-                }
+                this.css = resolve(this.filename);
             }
         },
         visitor: {
