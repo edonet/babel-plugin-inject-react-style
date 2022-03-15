@@ -23,7 +23,7 @@ import inject from '../src';
  */
 const options = {
     presets: ['@babel/preset-react', '@babel/preset-typescript'],
-    plugins: [[inject]],
+    plugins: [[inject, { module: true }]],
 };
 
 
@@ -32,7 +32,7 @@ const options = {
  * 测试模块
  *****************************************
  */
-describe('inject', () => {
+describe('custom', () => {
 
     /* inject jsx default style */
     test('inject jsx default style', () => {
@@ -49,13 +49,13 @@ describe('inject', () => {
 
         // 校验对象
         expect(indexOf('default.scss')).toBe(true);
-        expect(indexOf('babel-plugin-inject-react-style/dist/cx-loader.js')).toBe(false);
-        expect(indexOf('className: "app"')).toBe(true);
-        expect(indexOf('className: [prop.red ? \'red\' : \'\', \'f12\'].join(\' \')')).toBe(true);
-        expect(indexOf('className: prop.className')).toBe(true);
-        expect(indexOf('className: _cx(["app"])')).toBe(false);
-        expect(indexOf('className: _cx([prop.red ? \'red\' : \'\', \'f12\'])')).toBe(false);
-        expect(indexOf('className: _cx(prop.className.split(" "))')).toBe(false);
+        expect(indexOf('babel-plugin-inject-react-style/dist/cx-loader.js')).toBe(true);
+        expect(indexOf('className: "app"')).toBe(false);
+        expect(indexOf('className: [prop.red ? \'red\' : \'\', \'f12\'].join(\' \')')).toBe(false);
+        expect(indexOf('className: prop.className')).toBe(false);
+        expect(indexOf('className: _cx(["app"])')).toBe(true);
+        expect(indexOf('className: _cx([prop.red ? \'red\' : \'\', \'f12\'])')).toBe(true);
+        expect(indexOf('className: _cx(prop.className.split(" "))')).toBe(true);
     });
 
     /* inject jsx global style */

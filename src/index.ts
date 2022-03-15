@@ -77,13 +77,35 @@ function isFile(file: string): boolean | undefined {
 
 /**
  *****************************************
+ * 匹配文件
+ *****************************************
+ */
+function matchFile(file?: string): void | string {
+
+    // 无效的文件名
+    if (!file) {
+        return;
+    }
+
+    // 获取扩展名
+    const ext = path.extname(file);
+
+    // 匹配扩展名
+    if (ext === '.tsx' || ext === '.jsx') {
+        return file.slice(0, -4);
+    }
+}
+
+
+/**
+ *****************************************
  * 解析 CSS 样式文件
  *****************************************
  */
-function resolveFile(id: string): void | Asset {
+function resolveFile(id: string, opts: Required<Options>): void | Asset {
     const dirname = path.dirname(id);
-    const basename = path.basename(id).slice(0, -4);
-    const exts = ['.css', '.scss', '.less', '.sass'];
+    const basename = path.basename(id);
+    const exts = opts.extensions;
     const modes = ['', '.module', '.global'];
 
     // 遍历查找文件
@@ -94,7 +116,11 @@ function resolveFile(id: string): void | Asset {
 
             // 存在文件
             if (isFile(file)) {
-                return { name: './' + name, file, module: mode === '.module' };
+                return {
+                    name: './' + name,
+                    file,
+                    module: opts.module ? mode !== '.global' : mode === '.module'
+                };
             }
         }
     }
@@ -224,7 +250,8 @@ function visitJSXAttribute(expr: NodePath<types.JSXAttribute>, { css }: State): 
  *****************************************
  */
 export interface Options {
-    resolve?(file: string): undefined | Asset;
+    extensions?: string[];
+    module?: boolean;
 }
 
 
@@ -234,8 +261,10 @@ export interface Options {
  *****************************************
  */
 export default declare((api, opts: Options) => {
-    const resolve = opts.resolve || resolveFile;
-    const exts = ['.jsx', '.tsx'];
+    const resolveOpts = {
+        extensions: opts.extensions || ['.css', '.scss', '.less', '.sass'],
+        module: !!opts.module,
+    };
 
     // 校验版本
     api.assertVersion(7);
@@ -244,8 +273,11 @@ export default declare((api, opts: Options) => {
     return {
         name: 'inject-jsx-css-module',
         pre(this: State): void {
-            if (this.filename && exts.includes(path.extname(this.filename))) {
-                this.css = resolve(this.filename);
+            const matched = matchFile(this.filename);
+
+            // 匹配到文件
+            if (matched) {
+                this.css = resolveFile(matched, resolveOpts);
             }
         },
         visitor: {
